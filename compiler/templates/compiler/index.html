@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Code Compiler</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #282c34;
+            color: #abb2bf;
+            font-family: 'Fira Code', monospace;
+            font-size: 18px; /* Increased font size */
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+
+        .form-select,
+        .form-control {
+            background-color: #3a3f4b;
+            color: #abb2bf;
+            border: 1px solid #3a3f4b;
+        }
+
+        .form-select:focus,
+        .form-control:focus {
+            background-color: #3a3f4b;
+            color: #abb2bf;
+            border-color: #61dafb;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background-color: #61dafb;
+            border-color: #61dafb;
+            color: #282c34;
+        }
+
+        .btn-success:hover {
+            background-color: #21a1f1;
+            border-color: #21a1f1;
+        }
+
+        .rounded {
+            border-radius: 10px !important;
+        }
+
+        .editor-container {
+            background-color: #1e2127;
+            padding: 20px;
+            border-radius: 10px;
+            height: 700px;
+        }
+
+        .sidebar {
+            background-color: #1e2127;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 700px;
+        }
+
+        .sidebar textarea {
+            resize: none;
+            height: 50%;
+        }
+
+        .d-flex {
+            gap: 20px;
+        }
+
+        /* Custom styles for white dropdown */
+        .form-select {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #3a3f4b;
+        }
+
+        .form-select:focus {
+            background-color: #ffffff;
+            color: #000000;
+            border-color: #61dafb;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container,
+            .sidebar {
+                height: auto;
+            }
+
+            .sidebar textarea {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-12 mb-3">
+                <div class="editor-container">
+                    <div class="d-flex justify-content-between mb-2">
+                        <div class="col-5 col-md-4">
+                            <label class="visually-hidden" for="inlineFormSelectPref">Preference</label>
+                            <select class="form-select" id="inlineFormSelectPref">
+                                <option value="Java">Java</option>
+                                <option value="Cpp">C/C++</option>
+                                <option value="Python" selected>Python</option>
+                                <option value="JavaScript">JavaScript</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="button" id="run" class="btn btn-success"><i class="bi bi-play-fill"></i> Execute</button>
+                        </div>
+                    </div>
+                    <textarea type="text" id="editor" class="form-control" aria-label="First name"></textarea>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12">
+                <div class="sidebar">
+                    <div>
+                        <label for="Input" class="text-light mb-2">Input</label>
+                        <textarea type="text" id="input" class="form-control" aria-label="Last name"></textarea>
+                    </div>
+                    <div>
+                        <label for="Output" class="text-light mb-2">Output</label>
+                        <textarea type="text" id="output" class="form-control" aria-label="Last name" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/edit/closebrackets.min.js"></script>
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+            mode: "text/x-python",
+            theme: "dracula",
+            lineNumbers: true,
+            autoCloseBrackets: true,
+        });
+
+        var input = document.getElementById("input");
+        var output = document.getElementById("output");
+        var run = document.getElementById("run");
+        editor.setSize("100%", "600px");
+
+        // Increase the height of input and output textareas
+        input.style.height = "250px";
+        output.style.height = "300px";
+
+        var option = document.getElementById("inlineFormSelectPref");
+        option.addEventListener("change", function () {
+            if (option.value == "Java") {
+                editor.setOption("mode", "text/x-java");
+            } else if (option.value == "Python") {
+                editor.setOption("mode", "text/x-python");
+            } else if (option.value == "JavaScript") {
+                editor.setOption("mode", "text/javascript");
+            } else {
+                editor.setOption("mode", "text/x-c++src");
+            }
+        });
+
+        run.addEventListener("click", async function () {
+            var code = {
+                code: editor.getValue(),
+                input: input.value.split('\n'),  // Split input by new lines
+                lang: option.value
+            };
+
+            console.log(code);
+            var response = await fetch("/api/codesnippets/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(code)
+            });
+            var data = await response.json();
+            output.value = data.result;
+        });
+
+        input.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                run.click();
+            }
+        });
+
+        output.addEventListener("keydown", async function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                var code = {
+                    code: editor.getValue(),
+                    input: output.value.split('\n'),  // Split input by new lines
+                    lang: option.value
+                };
+                console.log(code);
+                var response = await fetch("/api/codesnippets/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(code)
+                });
+                var data = await response.json();
+                output.value = data.result;
+            }
+        });
+    </script>
+</body>
+
+</html>
