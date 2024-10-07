@@ -1,1 +1,1 @@
-web: gunicorn codecompiler.wsgi --log-file
+web: gunicorn codecompiler.wsgi:application --log-file -
